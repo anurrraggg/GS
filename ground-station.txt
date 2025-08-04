@@ -1,0 +1,724 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { Download, Play, Satellite, Radio } from "lucide-react"
+
+interface TelemetryData {
+  altitude: number
+  velocity: number
+  acceleration: number
+  temperature: number
+  pressure: number
+  pressureC: number
+  groundElevStn: number
+  altitudeC: number
+  batteryVoltage: number
+  gpsLat: number
+  gpsLon: number
+  gpsAlt: number
+  apogee: number
+  storage: number
+  memory: number
+  cpu: number
+  missionTime: number
+  connectionStatus: "Connected" | "Disconnected"
+  cameraStatus: "ON" | "OFF"
+  systemHealth: "NOMINAL" | "WARNING" | "CRITICAL"
+  descentRate: "IN RANGE" | "HIGH"
+  pressureStatus: "NOMINAL" | "LOW"
+  temperatureStatus: "NOMINAL" | "ALERT"
+  separationStatus: "PRIMED" | "DEPLOYED"
+  parachuteStatus: "ACTIVE" | "DEPLOYED"
+  signalStrength: number
+}
+
+export default function Component() {
+  const [telemetryData, setTelemetryData] = useState<TelemetryData>({
+    altitude: 218.7,
+    velocity: 45.2,
+    acceleration: 9.81,
+    temperature: 24.4,
+    pressure: 1013.25,
+    pressureC: 1013.25,
+    groundElevStn: 7.2,
+    altitudeC: 224.8,
+    batteryVoltage: 8.1,
+    gpsLat: 49.1122233,
+    gpsLon: -122.9876543,
+    gpsAlt: 227.8,
+    apogee: 8.2,
+    storage: 78,
+    memory: 45,
+    cpu: 23,
+    missionTime: 0,
+    connectionStatus: "Connected",
+    cameraStatus: "ON",
+    systemHealth: "NOMINAL",
+    descentRate: "IN RANGE",
+    pressureStatus: "NOMINAL",
+    temperatureStatus: "NOMINAL",
+    separationStatus: "PRIMED",
+    parachuteStatus: "ACTIVE",
+    signalStrength: 95,
+  })
+
+  const [chartData, setChartData] = useState({
+    chart1: Array.from({ length: 40 }, (_, i) => 90 - i * 1.2 + Math.sin(i * 0.3) * 8),
+    chart2: Array.from({ length: 40 }, (_, i) => 85 - i * 1.0 + Math.cos(i * 0.25) * 6),
+    chart3: Array.from({ length: 40 }, (_, i) => 60 + Math.sin(i * 0.2) * 20),
+    chart4: Array.from({ length: 40 }, (_, i) => 70 + Math.sin(i * 0.15) * 18),
+  })
+
+  // Real-time data updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTelemetryData((prev) => {
+        const altitudeChange = (Math.random() - 0.5) * 4
+        const newAltitude = Math.max(0, prev.altitude + altitudeChange)
+        const velocityChange = (Math.random() - 0.5) * 3
+        const newVelocity = Math.max(0, prev.velocity + velocityChange)
+        const batteryDrain = Math.random() * 0.008
+        const newBattery = Math.max(6.0, prev.batteryVoltage - batteryDrain)
+
+        return {
+          ...prev,
+          altitude: newAltitude,
+          velocity: newVelocity,
+          acceleration: 9.81 + (Math.random() - 0.5) * 2,
+          temperature: prev.temperature + (Math.random() - 0.5) * 1.5,
+          pressure: prev.pressure + (Math.random() - 0.5) * 3,
+          pressureC: prev.pressureC + (Math.random() - 0.5) * 3,
+          groundElevStn: prev.groundElevStn + (Math.random() - 0.5) * 0.8,
+          altitudeC: prev.altitudeC + altitudeChange,
+          batteryVoltage: newBattery,
+          gpsAlt: prev.gpsAlt + altitudeChange * 0.9,
+          apogee: Math.max(prev.apogee, newAltitude),
+          storage: Math.min(100, prev.storage + Math.random() * 0.08),
+          memory: Math.max(0, prev.memory + (Math.random() - 0.5) * 2),
+          cpu: Math.max(0, prev.cpu + (Math.random() - 0.5) * 5),
+          missionTime: prev.missionTime + 1,
+          connectionStatus: Math.random() > 0.03 ? "Connected" : "Disconnected",
+          systemHealth: newBattery > 7.5 ? "NOMINAL" : newBattery > 7.0 ? "WARNING" : "CRITICAL",
+          descentRate: newVelocity < 50 ? "IN RANGE" : "HIGH",
+          pressureStatus: prev.pressure > 1000 ? "NOMINAL" : "LOW",
+          temperatureStatus: prev.temperature > 20 && prev.temperature < 30 ? "NOMINAL" : "ALERT",
+          signalStrength: Math.max(0, Math.min(100, prev.signalStrength + (Math.random() - 0.5) * 8)),
+        }
+      })
+
+      // Update chart data with smooth animations
+      setChartData((prev) => ({
+        chart1: [...prev.chart1.slice(1), Math.random() * 50 + 30 + Math.sin(Date.now() * 0.001) * 12],
+        chart2: [...prev.chart2.slice(1), Math.random() * 45 + 25 + Math.cos(Date.now() * 0.0008) * 10],
+        chart3: [...prev.chart3.slice(1), 60 + Math.sin(Date.now() * 0.0012) * 22 + Math.random() * 8],
+        chart4: [...prev.chart4.slice(1), 70 + Math.sin(Date.now() * 0.0015) * 18 + Math.random() * 6],
+      }))
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  const formatTime = (seconds: number) => {
+    const hrs = Math.floor(seconds / 3600)
+    const mins = Math.floor((seconds % 3600) / 60)
+    const secs = seconds % 60
+    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+  }
+
+  const createChartPath = (data: number[]) => {
+    const points = data.map((value, i) => `${(i * 380) / data.length},${120 - (value * 100) / 120}`).join(" L ")
+    return `M ${points}`
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "NOMINAL":
+      case "IN RANGE":
+      case "ACTIVE":
+      case "Connected":
+      case "ON":
+        return "text-green-400"
+      case "WARNING":
+      case "ALERT":
+      case "HIGH":
+      case "LOW":
+      case "PRIMED":
+        return "text-yellow-400"
+      case "CRITICAL":
+      case "Disconnected":
+      case "OFF":
+        return "text-red-400"
+      default:
+        return "text-white"
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      {/* Top Menu Bar */}
+      <div className="bg-gray-900 border-b border-gray-700 px-4 py-1 flex items-center justify-between text-sm">
+        <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4">
+            <span className="text-white hover:text-blue-400 cursor-pointer transition-colors">File</span>
+            <span className="text-white hover:text-blue-400 cursor-pointer transition-colors">Edit</span>
+            <span className="text-white hover:text-blue-400 cursor-pointer transition-colors">Selection</span>
+            <span className="text-white hover:text-blue-400 cursor-pointer transition-colors">View</span>
+            <span className="text-white hover:text-blue-400 cursor-pointer transition-colors">Help</span>
+          </div>
+        </div>
+        <div className="flex items-center space-x-3">
+          <Button
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 h-7 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/30"
+          >
+            <Download className="w-3 h-3 mr-1" />
+            Export as CSV
+          </Button>
+          <Button
+            size="sm"
+            className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 h-7 transition-all duration-300 hover:shadow-lg hover:shadow-green-500/30"
+          >
+            <Radio className="w-3 h-3 mr-1" />
+            Sync with PG Tone
+          </Button>
+          <div className="flex items-center space-x-1">
+            <div
+              className={`w-2 h-2 rounded-full ${
+                telemetryData.connectionStatus === "Connected"
+                  ? "bg-green-500 animate-pulse shadow-lg shadow-green-500/50"
+                  : "bg-red-500 animate-pulse shadow-lg shadow-red-500/50"
+              }`}
+            />
+            <span className="text-white text-xs">Live</span>
+          </div>
+          <Button
+            size="sm"
+            className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-2 py-1 h-7 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/30"
+          >
+            <Download className="w-3 h-3 mr-1" />
+            Export Graphs
+          </Button>
+        </div>
+      </div>
+
+      <div className="p-3 grid grid-cols-12 gap-3 h-[calc(100vh-50px)]">
+        {/* Telemetry Charts - Top Row */}
+        <div className="col-span-12 grid grid-cols-4 gap-3 h-40">
+          {[
+            { title: "Altitude", data: chartData.chart1, color: "#fbbf24", value: telemetryData.altitude, unit: "m" },
+            { title: "Velocity", data: chartData.chart2, color: "#fbbf24", value: telemetryData.velocity, unit: "m/s" },
+            {
+              title: "Acceleration",
+              data: chartData.chart3,
+              color: "#3b82f6",
+              value: telemetryData.acceleration,
+              unit: "m/s²",
+            },
+            {
+              title: "Temperature",
+              data: chartData.chart4,
+              color: "#10b981",
+              value: telemetryData.temperature,
+              unit: "°C",
+            },
+          ].map((chart, index) => (
+            <Card
+              key={index}
+              className="bg-gray-900 border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
+            >
+              <CardContent className="p-3">
+                <div className="h-32 relative">
+                  <svg className="w-full h-full" viewBox="0 0 400 120">
+                    <defs>
+                      <linearGradient id={`gradient${index}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor={chart.color} stopOpacity="0.4" />
+                        <stop offset="100%" stopColor={chart.color} stopOpacity="0" />
+                      </linearGradient>
+                      <filter id={`glow${index}`}>
+                        <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+                        <feMerge>
+                          <feMergeNode in="coloredBlur" />
+                          <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                      </filter>
+                    </defs>
+                    {/* Grid lines */}
+                    <defs>
+                      <pattern id={`grid${index}`} width="40" height="20" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 20" fill="none" stroke="#374151" strokeWidth="0.5" opacity="0.3" />
+                      </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill={`url(#grid${index})`} />
+
+                    {/* Chart area fill */}
+                    <path d={`${createChartPath(chart.data)} L 400,120 L 0,120 Z`} fill={`url(#gradient${index})`} />
+
+                    {/* Chart line */}
+                    <path
+                      d={createChartPath(chart.data)}
+                      fill="none"
+                      stroke={chart.color}
+                      strokeWidth="2.5"
+                      filter={`url(#glow${index})`}
+                      className="animate-pulse"
+                      style={{ animationDuration: "2s" }}
+                    />
+
+                    {/* Data points */}
+                    {chart.data.slice(-5).map((value, i) => (
+                      <circle
+                        key={i}
+                        cx={(chart.data.length - 5 + i) * (380 / chart.data.length)}
+                        cy={120 - (value * 100) / 120}
+                        r="2"
+                        fill={chart.color}
+                        className="animate-pulse"
+                      />
+                    ))}
+                  </svg>
+
+                  <div className="absolute top-1 left-2 text-xs text-gray-400 font-medium">{chart.title}</div>
+                  <div
+                    className={`absolute bottom-1 left-2 text-sm font-mono font-bold drop-shadow-lg`}
+                    style={{ color: chart.color, textShadow: `0 0 10px ${chart.color}50` }}
+                  >
+                    {chart.value.toFixed(1)} {chart.unit}
+                  </div>
+                  <div className="absolute bottom-1 right-2 text-xs text-gray-500">
+                    {chart.data.length > 0
+                      ? chart.data[chart.data.length - 1] > chart.data[chart.data.length - 2]
+                        ? "↗"
+                        : "↘"
+                      : ""}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Left Panel - Atmospheric & Kinematic Variables */}
+        <div className="col-span-3 space-y-3">
+          <Card className="bg-gray-900 border-gray-700 hover:border-gray-600 transition-all duration-300">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-blue-400 font-semibold">Atmospheric & Kinematic Variables</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="space-y-1">
+                  <div className="text-gray-400">Pressure</div>
+                  <div className="text-white font-mono text-sm font-bold">{telemetryData.pressure.toFixed(2)} hPa</div>
+                  <div className="w-full bg-gray-700 rounded-full h-1">
+                    <div
+                      className="bg-blue-500 h-1 rounded-full transition-all duration-1000"
+                      style={{ width: `${(telemetryData.pressure / 1050) * 100}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-gray-400">Pressure C</div>
+                  <div className="text-white font-mono text-sm font-bold">{telemetryData.pressureC.toFixed(2)} hPa</div>
+                  <div className="w-full bg-gray-700 rounded-full h-1">
+                    <div
+                      className="bg-blue-500 h-1 rounded-full transition-all duration-1000"
+                      style={{ width: `${(telemetryData.pressureC / 1050) * 100}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-gray-400">Ground Elev Stn</div>
+                  <div className="text-white font-mono text-sm font-bold">
+                    {telemetryData.groundElevStn.toFixed(1)} m/s
+                  </div>
+                  <div className="w-full bg-gray-700 rounded-full h-1">
+                    <div
+                      className="bg-green-500 h-1 rounded-full transition-all duration-1000"
+                      style={{ width: `${(telemetryData.groundElevStn / 20) * 100}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-gray-400">Altitude C</div>
+                  <div className="text-white font-mono text-sm font-bold">{telemetryData.altitudeC.toFixed(1)} m</div>
+                  <div className="w-full bg-gray-700 rounded-full h-1">
+                    <div
+                      className="bg-yellow-500 h-1 rounded-full transition-all duration-1000"
+                      style={{ width: `${(telemetryData.altitudeC / 500) * 100}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-gray-400">Altitude</div>
+                  <div className="text-white font-mono text-sm font-bold">{telemetryData.altitude.toFixed(1)} m</div>
+                  <div className="w-full bg-gray-700 rounded-full h-1">
+                    <div
+                      className="bg-yellow-500 h-1 rounded-full transition-all duration-1000"
+                      style={{ width: `${(telemetryData.altitude / 500) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-900 border-gray-700 hover:border-gray-600 transition-all duration-300">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-blue-400 font-semibold">
+                Orientation Dial & Positional Telemetry
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 relative">
+                  <Satellite
+                    className={`w-full h-full transition-all duration-1000 ${
+                      telemetryData.connectionStatus === "Connected" ? "text-blue-400 drop-shadow-lg" : "text-gray-500"
+                    }`}
+                    style={{
+                      filter: telemetryData.connectionStatus === "Connected" ? "drop-shadow(0 0 10px #60a5fa)" : "none",
+                      transform: `rotate(${telemetryData.missionTime * 2}deg)`,
+                    }}
+                  />
+                  <div
+                    className={`absolute inset-0 rounded-full ${telemetryData.connectionStatus === "Connected" ? "animate-ping bg-blue-400 opacity-20" : ""}`}
+                  />
+                </div>
+                <div className="space-y-1 text-xs">
+                  <div className="text-gray-400 font-medium">Temperature</div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-400">IoT Station 1 Temp:</span>
+                    <span className={`font-mono font-bold ${getStatusColor(telemetryData.temperatureStatus)}`}>
+                      {telemetryData.temperature.toFixed(1)} °C
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-400">IoT Station 2 Temp:</span>
+                    <span className={`font-mono font-bold ${getStatusColor(telemetryData.temperatureStatus)}`}>
+                      {(telemetryData.temperature - 1.3).toFixed(1)} °C
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <Card className="bg-gray-900 border-gray-700 p-2 hover:border-gray-600 transition-all duration-300">
+              <div className="space-y-1">
+                <div className="text-gray-400 font-medium mb-1">Best Altitude</div>
+                <div className="text-green-400 font-mono font-bold">APOGEE: {telemetryData.apogee.toFixed(1)} m</div>
+                <div className="text-white font-mono">GPS Alt: {telemetryData.gpsLat.toFixed(7)}</div>
+                <div
+                  className={`font-mono font-bold ${
+                    telemetryData.batteryVoltage < 7.0
+                      ? "text-red-400 animate-pulse"
+                      : telemetryData.batteryVoltage < 7.5
+                        ? "text-yellow-400"
+                        : "text-green-400"
+                  }`}
+                  style={{
+                    textShadow: telemetryData.batteryVoltage < 7.0 ? "0 0 10px #ef4444" : "none",
+                  }}
+                >
+                  VBAT: {telemetryData.batteryVoltage.toFixed(1)} V
+                </div>
+              </div>
+            </Card>
+            <Card className="bg-gray-900 border-gray-700 p-2 hover:border-gray-600 transition-all duration-300">
+              <div className="space-y-1">
+                <div className="text-gray-400 font-medium mb-1">GPS Data</div>
+                <div className="text-white font-mono">GPS Lat: {telemetryData.gpsLat.toFixed(7)}</div>
+                <div className="text-white font-mono">GPS Lon: {telemetryData.gpsLon.toFixed(7)}</div>
+                <div className="text-white font-mono">GPS Alt: {telemetryData.gpsAlt.toFixed(1)} m</div>
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        {/* Center Panel - Live Video Stream */}
+        <div className="col-span-6 space-y-3">
+          <Card className="bg-gray-900 border-gray-700 h-64 hover:border-gray-600 transition-all duration-300">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm text-blue-400 font-semibold">📺 Live Video Stream</CardTitle>
+                <Badge
+                  className={`${
+                    telemetryData.cameraStatus === "ON" && telemetryData.connectionStatus === "Connected"
+                      ? "bg-red-600 animate-pulse shadow-lg shadow-red-500/50"
+                      : "bg-gray-600"
+                  } text-white text-xs transition-all duration-300`}
+                >
+                  <Play className="w-3 h-3 mr-1" />
+                  {telemetryData.cameraStatus === "ON" && telemetryData.connectionStatus === "Connected"
+                    ? "Live"
+                    : "Offline"}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="h-48 bg-gray-800 rounded border border-gray-600 relative overflow-hidden">
+                <img
+                  src="/placeholder.svg?height=192&width=400&text=Live+Satellite+Feed"
+                  alt="Live satellite feed"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 px-2 py-1 rounded text-xs font-medium">
+                  Live Feed - Satellite Camera ({telemetryData.cameraStatus})
+                </div>
+                <div className="absolute top-2 right-2 bg-black bg-opacity-70 px-2 py-1 rounded text-xs font-mono">
+                  {formatTime(telemetryData.missionTime)}
+                </div>
+                <div className="absolute top-2 left-2 bg-black bg-opacity-70 px-2 py-1 rounded text-xs font-mono">
+                  ALT: {telemetryData.altitude.toFixed(0)}m | VEL: {telemetryData.velocity.toFixed(0)}m/s
+                </div>
+                {/* Signal strength indicator */}
+                <div className="absolute bottom-2 right-2 flex items-center space-x-1">
+                  {[...Array(4)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-1 h-${i + 2} ${
+                        telemetryData.signalStrength > i * 25 ? "bg-green-400" : "bg-gray-600"
+                      } transition-all duration-300`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Card className="bg-gray-900 border-gray-700 hover:border-gray-600 transition-all duration-300">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-green-400 font-semibold">Filter Command</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Status</span>
+                    <Badge
+                      className={`${
+                        telemetryData.connectionStatus === "Connected" ? "bg-green-600" : "bg-red-600"
+                      } text-white text-xs transition-all duration-300`}
+                    >
+                      {telemetryData.connectionStatus === "Connected" ? "Active" : "Inactive"}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">EQRP</span>
+                    <span className="text-white font-medium">Send</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Last Command</span>
+                    <span className="text-white font-mono">0.0 s</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Camera Status</span>
+                    <span className={`font-bold ${getStatusColor(telemetryData.cameraStatus)}`}>
+                      {telemetryData.cameraStatus}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Battery Voltage</span>
+                    <span
+                      className={`font-mono font-bold ${
+                        telemetryData.batteryVoltage < 7.0 ? "text-red-400 animate-pulse" : "text-white"
+                      }`}
+                      style={{
+                        textShadow: telemetryData.batteryVoltage < 7.0 ? "0 0 10px #ef4444" : "none",
+                      }}
+                    >
+                      {telemetryData.batteryVoltage.toFixed(1)}V
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Free Mechanism</span>
+                    <span className="text-white font-medium">Standby</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gray-900 border-gray-700 hover:border-gray-600 transition-all duration-300">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-blue-400 font-semibold">System Status</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-xs">
+                  <div className="space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Storage</span>
+                      <span className="text-white font-mono">{telemetryData.storage.toFixed(0)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-1000 ${
+                          telemetryData.storage > 90
+                            ? "bg-red-500 animate-pulse"
+                            : telemetryData.storage > 75
+                              ? "bg-yellow-500"
+                              : "bg-green-500"
+                        }`}
+                        style={{ width: `${telemetryData.storage}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Memory</span>
+                      <span className="text-white font-mono">{telemetryData.memory.toFixed(0)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-1000 ${
+                          telemetryData.memory > 80
+                            ? "bg-red-500 animate-pulse"
+                            : telemetryData.memory > 60
+                              ? "bg-yellow-500"
+                              : "bg-green-500"
+                        }`}
+                        style={{ width: `${telemetryData.memory}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">CPU</span>
+                      <span className="text-white font-mono">{telemetryData.cpu.toFixed(0)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-1000 ${
+                          telemetryData.cpu > 85
+                            ? "bg-red-500 animate-pulse"
+                            : telemetryData.cpu > 70
+                              ? "bg-yellow-500"
+                              : "bg-green-500"
+                        }`}
+                        style={{ width: `${telemetryData.cpu}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Right Panel - Interface Alarm Status Console */}
+        <div className="col-span-3 space-y-3">
+          <Card className="bg-gray-900 border-gray-700 hover:border-gray-600 transition-all duration-300">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-blue-400 font-semibold">
+                Interface Alarm Status Console - IAS
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-xs">
+                <div className="grid grid-cols-2 gap-3 font-semibold">
+                  <div className="text-gray-400">BIT PARAMETERS</div>
+                  <div className="text-gray-400">STATUS</div>
+                </div>
+                <Separator className="bg-gray-600" />
+                {[
+                  { param: "System Health", status: telemetryData.systemHealth },
+                  { param: "Descent Rate SP", status: telemetryData.descentRate },
+                  { param: "Pressure Data SP", status: telemetryData.pressureStatus },
+                  { param: "Temperature SP", status: telemetryData.temperatureStatus },
+                  { param: "Separation Activation", status: telemetryData.separationStatus },
+                  { param: "Parachute Mechanism", status: telemetryData.parachuteStatus },
+                ].map((item, index) => (
+                  <div key={index} className="grid grid-cols-2 gap-3 items-center">
+                    <div className="text-gray-300 font-medium">{item.param}</div>
+                    <div
+                      className={`font-bold ${getStatusColor(item.status)} transition-all duration-300`}
+                      style={{
+                        textShadow:
+                          item.status === "CRITICAL"
+                            ? "0 0 10px #ef4444"
+                            : item.status === "WARNING" || item.status === "ALERT"
+                              ? "0 0 8px #eab308"
+                              : "none",
+                      }}
+                    >
+                      {item.status}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-900 border-gray-700 hover:border-gray-600 transition-all duration-300">
+            <CardHeader className="pb-2">
+              <CardTitle
+                className={`text-sm font-bold ${getStatusColor(telemetryData.systemHealth)} transition-all duration-300`}
+                style={{
+                  textShadow: telemetryData.systemHealth === "CRITICAL" ? "0 0 10px #ef4444" : "none",
+                }}
+              >
+                Status: {telemetryData.systemHealth}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-xs">
+                <div className="text-red-400 font-medium">Flame Diagnostic</div>
+                <div className="text-yellow-400 animate-pulse font-bold">⚠ RUN</div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/30">
+            View Alert Log
+          </Button>
+        </div>
+
+        {/* Bottom Status Bar */}
+        <div className="col-span-12 bg-gray-900 border border-gray-700 rounded p-3 hover:border-gray-600 transition-all duration-300">
+          <div className="grid grid-cols-4 gap-6 items-center text-center">
+            <div className="space-y-1">
+              <div className="text-gray-400 text-sm font-medium">LAUNCH PAD</div>
+              <div className="text-white text-2xl font-bold animate-pulse">249360</div>
+              <div className="text-gray-400 text-sm">Team ID</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-gray-400 text-sm font-medium">PSIT VYOMNAUTS</div>
+              <div className="text-white text-lg font-semibold">Team Name</div>
+            </div>
+            <div className="space-y-1">
+              <div
+                className={`text-lg font-bold ${getStatusColor(telemetryData.connectionStatus)} transition-all duration-300`}
+                style={{
+                  textShadow: telemetryData.connectionStatus === "Connected" ? "0 0 10px #22c55e" : "0 0 10px #ef4444",
+                }}
+              >
+                {telemetryData.connectionStatus}
+              </div>
+              <div className="text-gray-400 text-sm">Status</div>
+              <div className="flex justify-center space-x-1">
+                {[...Array(4)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-2 h-1 ${
+                      telemetryData.signalStrength > i * 25 ? "bg-green-400" : "bg-gray-600"
+                    } transition-all duration-300`}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-white text-2xl font-mono font-bold">{formatTime(telemetryData.missionTime)}</div>
+              <div className="text-gray-400 text-sm">Mission Time</div>
+              <div className="text-xs text-blue-400 font-medium">
+                Phase: {telemetryData.altitude > 100 ? "ASCENT" : "DESCENT"}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
